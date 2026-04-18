@@ -1,0 +1,12 @@
+{
+  "name": "expense-tracker-workspace",
+  "private": true,
+  "scripts": {
+    "test": "npm --prefix server test && npm --prefix client test",
+    "test:server": "npm --prefix server test",
+    "test:client": "npm --prefix client test",
+    "build:client": "npm --prefix client run build",
+    "build:docker": "docker compose -f docker-compose.prod.yml build",
+    "up:docker": "docker compose -f docker-compose.prod.yml up -d"
+  }
+}
