@@ -24,8 +24,8 @@ describe("AddTransactionForm", () => {
 
     const { container } = render(<AddTransactionForm open onCreate={onCreate} onClose={onClose} />);
 
-    await user.type(screen.getByPlaceholderText("Title"), "  Groceries  ");
-    await user.type(screen.getByPlaceholderText("Amount"), "125.5");
+    await user.type(screen.getByPlaceholderText("e.g., Groceries, Rent, Salary"), "  Groceries  ");
+    await user.type(screen.getByPlaceholderText("0.00"), "125.5");
     const typeSelect = container.querySelector("select[name='type']");
     const categorySelect = container.querySelector("select[name='category']");
     const dateInput = container.querySelector("input[name='date']");
