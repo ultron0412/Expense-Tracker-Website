@@ -45,20 +45,43 @@ function getInitialBudgets() {
 
 function SummaryCards({ income, expense }) {
   const balance = income - expense;
+  const isNegativeBalance = balance < 0;
 
   return (
-    <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      <article className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-xl">
-        <p className="text-sm text-slate-300">Total Balance</p>
-        <p className="mt-1 text-xl font-semibold text-white">{formatCurrency(balance)}</p>
+    <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <article className={`group rounded-2xl border transition-all duration-300 backdrop-blur-xl p-5 ${
+        isNegativeBalance
+          ? 'border-amber-400/30 bg-gradient-to-br from-amber-500/10 to-orange-500/5 hover:border-amber-400/50 hover:shadow-lg hover:shadow-amber-500/10'
+          : 'border-cyan-400/30 bg-gradient-to-br from-cyan-500/10 to-blue-500/5 hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-500/10'
+      }`}>
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium text-slate-300">Total Balance</p>
+          <span className="text-2xl">💰</span>
+        </div>
+        <p className={`mt-2 text-2xl font-bold transition-colors ${
+          isNegativeBalance ? 'text-amber-100' : 'text-cyan-100'
+        }`}>
+          {formatCurrency(balance)}
+        </p>
+        <p className="mt-1 text-xs text-slate-400">{isNegativeBalance ? 'Overspent' : 'Available'}</p>
       </article>
-      <article className="rounded-2xl border border-white/20 bg-emerald-500/10 p-4 backdrop-blur-xl">
-        <p className="text-sm text-emerald-200">Total Income</p>
-        <p className="mt-1 text-xl font-semibold text-emerald-100">{formatCurrency(income)}</p>
+
+      <article className="group rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/10 to-green-500/5 backdrop-blur-xl p-5 transition-all duration-300 hover:border-emerald-400/50 hover:shadow-lg hover:shadow-emerald-500/10">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium text-slate-300">Total Income</p>
+          <span className="text-2xl">📈</span>
+        </div>
+        <p className="mt-2 text-2xl font-bold text-emerald-100">{formatCurrency(income)}</p>
+        <p className="mt-1 text-xs text-slate-400">Money in</p>
       </article>
-      <article className="rounded-2xl border border-white/20 bg-rose-500/10 p-4 backdrop-blur-xl">
-        <p className="text-sm text-rose-200">Total Expense</p>
-        <p className="mt-1 text-xl font-semibold text-rose-100">{formatCurrency(expense)}</p>
+
+      <article className="group rounded-2xl border border-rose-400/30 bg-gradient-to-br from-rose-500/10 to-red-500/5 backdrop-blur-xl p-5 transition-all duration-300 hover:border-rose-400/50 hover:shadow-lg hover:shadow-rose-500/10">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium text-slate-300">Total Expense</p>
+          <span className="text-2xl">📉</span>
+        </div>
+        <p className="mt-2 text-2xl font-bold text-rose-100">{formatCurrency(expense)}</p>
+        <p className="mt-1 text-xs text-slate-400">Money out</p>
       </article>
     </section>
   );
@@ -70,9 +93,26 @@ function AuthGate() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [formErrors, setFormErrors] = useState({});
+
+  const validateForm = () => {
+    const errors = {};
+    if (mode === "signup" && !form.name.trim()) errors.name = "Name is required";
+    if (!form.email.trim()) errors.email = "Email is required";
+    if (!form.password) errors.password = "Password is required";
+    return errors;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errors = validateForm();
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    setFormErrors({});
     setError("");
     setLoading(true);
 
@@ -95,69 +135,143 @@ function AuthGate() {
   };
 
   return (
-    <main className="mx-auto mt-12 max-w-md rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-xl">
-      <h1 className="text-2xl font-semibold text-white">Welcome</h1>
-      <p className="mt-1 text-sm text-slate-300">
-        {mode === "login" ? "Log in to sync your transactions." : "Create an account to start tracking."}
-      </p>
+    <main className="mx-auto mt-8 min-h-screen w-full max-w-md px-4 flex flex-col justify-center">
+      <div className="rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-slate-950/80 p-8 shadow-2xl backdrop-blur-xl">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="text-4xl mb-3">💰</div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-300 to-blue-400 bg-clip-text text-transparent">
+            Expense Tracker
+          </h1>
+          <p className="mt-2 text-slate-400">
+            {mode === "login" ? "Welcome back! Log in to your account." : "Get started tracking your expenses."}
+          </p>
+        </div>
 
-      <div className="mt-4 flex rounded-xl bg-slate-900/50 p-1">
-        <button
-          className={`flex-1 rounded-lg py-2 text-sm ${
-            mode === "login" ? "bg-brand-300 text-slate-900" : "text-slate-300"
-          }`}
-          onClick={() => setMode("login")}
-          type="button"
-        >
-          Login
-        </button>
-        <button
-          className={`flex-1 rounded-lg py-2 text-sm ${
-            mode === "signup" ? "bg-brand-300 text-slate-900" : "text-slate-300"
-          }`}
-          onClick={() => setMode("signup")}
-          type="button"
-        >
-          Sign Up
-        </button>
-      </div>
+        {/* Mode Toggle */}
+        <div className="mb-6 flex gap-2 rounded-xl bg-slate-900/50 p-1 border border-white/10">
+          <button
+            className={`flex-1 rounded-lg py-2 px-4 text-sm font-medium transition-all ${
+              mode === "login"
+                ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg"
+                : "text-slate-400 hover:text-slate-200"
+            }`}
+            onClick={() => setMode("login")}
+            type="button"
+          >
+            🔐 Login
+          </button>
+          <button
+            className={`flex-1 rounded-lg py-2 px-4 text-sm font-medium transition-all ${
+              mode === "signup"
+                ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg"
+                : "text-slate-400 hover:text-slate-200"
+            }`}
+            onClick={() => setMode("signup")}
+            type="button"
+          >
+            ✨ Sign Up
+          </button>
+        </div>
 
-      <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
-        {mode === "signup" && (
-          <input
-            className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-white"
-            placeholder="Name"
-            value={form.name}
-            onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-          />
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 animate-in fade-in rounded-lg border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-100">
+            <p className="font-medium">⚠️ {error}</p>
+          </div>
         )}
-        <input
-          className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-white"
-          placeholder="Email"
-          type="email"
-          value={form.email}
-          onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
-        />
-        <input
-          className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3 py-2 text-white"
-          placeholder="Password"
-          type="password"
-          value={form.password}
-          onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
-        />
-        {error && <p className="rounded-lg bg-rose-500/20 p-2 text-sm text-rose-100">{error}</p>}
-        <button
-          className="w-full rounded-xl bg-brand-300 px-4 py-2 font-semibold text-slate-900 transition hover:bg-brand-100 disabled:opacity-70"
-          disabled={loading}
-        >
-          {loading ? "Please wait..." : mode === "login" ? "Login" : "Create Account"}
-        </button>
-      </form>
+
+        {/* Form */}
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          {mode === "signup" && (
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-2">Full Name</label>
+              <input
+                className={`w-full rounded-lg border transition-all px-4 py-3 text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-cyan-400/20 ${
+                  formErrors.name
+                    ? "border-rose-400/50 bg-rose-500/5 focus:border-rose-400"
+                    : "border-white/20 bg-slate-900/50 focus:border-cyan-400/50 focus:bg-slate-900/80"
+                }`}
+                placeholder="Your name"
+                value={form.name}
+                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+              />
+              {formErrors.name && <p className="mt-1 text-xs text-rose-400">{formErrors.name}</p>}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-medium text-slate-300 mb-2">Email Address</label>
+            <input
+              className={`w-full rounded-lg border transition-all px-4 py-3 text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-cyan-400/20 ${
+                formErrors.email
+                  ? "border-rose-400/50 bg-rose-500/5 focus:border-rose-400"
+                  : "border-white/20 bg-slate-900/50 focus:border-cyan-400/50 focus:bg-slate-900/80"
+              }`}
+              placeholder="your@email.com"
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
+            />
+            {formErrors.email && <p className="mt-1 text-xs text-rose-400">{formErrors.email}</p>}
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-300 mb-2">Password</label>
+            <input
+              className={`w-full rounded-lg border transition-all px-4 py-3 text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-cyan-400/20 ${
+                formErrors.password
+                  ? "border-rose-400/50 bg-rose-500/5 focus:border-rose-400"
+                  : "border-white/20 bg-slate-900/50 focus:border-cyan-400/50 focus:bg-slate-900/80"
+              }`}
+              placeholder="••••••••"
+              type="password"
+              value={form.password}
+              onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
+            />
+            {formErrors.password && <p className="mt-1 text-xs text-rose-400">{formErrors.password}</p>}
+          </div>
+
+          <button
+            className="w-full rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-3 font-semibold text-white transition-all hover:from-cyan-600 hover:to-blue-600 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+            disabled={loading}
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="inline-block animate-spin">⏳</span>
+                {mode === "login" ? "Logging in..." : "Creating account..."}
+              </span>
+            ) : mode === "login" ? (
+              "🔐 Login"
+            ) : (
+              "✨ Create Account"
+            )}
+          </button>
+        </form>
+
+        {/* Footer */}
+        <p className="mt-6 text-center text-xs text-slate-500">
+          {mode === "login"
+            ? "Don't have an account? Click Sign Up →"
+            : "Already have an account? Click Login →"}
+        </p>
+      </div>
     </main>
   );
 }
 
 function BudgetGoals({ budgets, onChangeBudget, expenseByCategory }) {
+  const categoryEmojis = {
+    Food: "🍔",
+    Rent: "🏠",
+    Salary: "💼",
+    Entertainment: "🎬",
+    Transport: "🚗",
+    Health: "⚕️",
+    Utilities: "💡",
+    Other: "📦",
+  };
+
   const statuses = useMemo(
     () =>
       Object.entries(budgets)
@@ -179,45 +293,80 @@ function BudgetGoals({ budgets, onChangeBudget, expenseByCategory }) {
   const alerts = statuses.filter((item) => item.percentage >= 80);
 
   return (
-    <section className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-xl">
-      <h2 className="text-lg font-semibold text-white">Budget Goals</h2>
-      <p className="mt-1 text-sm text-slate-300">
-        Set monthly category limits. Alerts appear when spending reaches 80%.
-      </p>
+    <section className="rounded-2xl border border-white/20 bg-gradient-to-br from-slate-900/80 to-slate-950/80 backdrop-blur-xl p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+            📊 Budget Goals
+          </h2>
+          <p className="mt-1 text-sm text-slate-400">
+            Set monthly limits. Alerts trigger at 80% spending.
+          </p>
+        </div>
+      </div>
 
+      {/* Alert Badges */}
       {alerts.length > 0 && (
-        <div className="mt-3 space-y-2">
+        <div className="mb-6 space-y-2">
+          <h3 className="text-xs font-semibold uppercase text-slate-400">⚠️ Budget Alerts</h3>
           {alerts.map((item) => (
             <div
               key={item.category}
-              className={`rounded-xl border p-3 text-sm ${
+              className={`flex items-center justify-between rounded-lg border p-3 text-sm transition-all ${
                 item.percentage >= 100
-                  ? "border-rose-400/50 bg-rose-500/20 text-rose-100"
-                  : "border-amber-400/50 bg-amber-500/20 text-amber-100"
+                  ? "border-rose-400/50 bg-rose-500/15 text-rose-100"
+                  : "border-amber-400/50 bg-amber-500/15 text-amber-100"
               }`}
             >
-              <strong>{item.category}</strong>: {item.percentage.toFixed(0)}% used (
-              {formatCurrency(item.spent)} of {formatCurrency(item.budget)})
+              <div>
+                <strong>{categoryEmojis[item.category]} {item.category}</strong>
+                <p className="text-xs opacity-90">
+                  {item.percentage.toFixed(0)}% used ({formatCurrency(item.spent)} / {formatCurrency(item.budget)})
+                </p>
+              </div>
+              <div className="text-right">
+                <span className={`text-xs font-bold ${item.percentage >= 100 ? "text-rose-100" : "text-amber-100"}`}>
+                  {item.percentage >= 100 ? "🔴" : "🟡"}
+                </span>
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {Object.keys(budgets).map((category) => (
-          <label key={category} className="rounded-xl border border-white/10 bg-slate-900/50 p-3 text-sm">
-            <span className="mb-2 block text-slate-300">{category}</span>
-            <input
-              type="number"
-              min="0"
-              step="1"
-              value={budgets[category]}
-              onChange={(e) => onChangeBudget(category, e.target.value)}
-              className="w-full rounded-lg border border-white/20 bg-slate-950/70 px-3 py-2 text-white"
-              placeholder="Set budget"
-            />
-          </label>
-        ))}
+      {/* Budget Input Grid */}
+      <div className="space-y-3">
+        <h3 className="text-xs font-semibold uppercase text-slate-400 mb-3">Set Budget Limits</h3>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {Object.entries(budgets).map(([category, value]) => (
+            <label
+              key={category}
+              className="group relative rounded-lg border border-white/10 bg-slate-900/40 p-3 transition-all hover:border-white/20 hover:bg-slate-900/60 cursor-pointer"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">{categoryEmojis[category]}</span>
+                <span className="text-xs font-medium text-slate-300">{category}</span>
+              </div>
+              <div className="relative">
+                <span className="absolute left-2 top-2.5 text-slate-500 text-xs">💵</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="100"
+                  value={value}
+                  onChange={(e) => onChangeBudget(category, e.target.value)}
+                  className="w-full pl-6 rounded-lg border border-white/10 bg-slate-950/50 px-3 py-2 text-white placeholder-slate-600 text-sm outline-none transition focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/20"
+                  placeholder="Set limit"
+                />
+              </div>
+              {value > 0 && (
+                <p className="mt-1 text-xs text-slate-500">
+                  Limit set to {formatCurrency(value)}
+                </p>
+              )}
+            </label>
+          ))}
+        </div>
       </div>
     </section>
   );
