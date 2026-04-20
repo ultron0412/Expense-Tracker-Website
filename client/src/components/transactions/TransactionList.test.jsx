@@ -52,12 +52,17 @@ describe("TransactionList", () => {
     const user = userEvent.setup();
     const onDelete = vi.fn();
 
-    render(<TransactionList transactions={transactions} onDelete={onDelete} />);
+    vi.spyOn(window, "confirm").mockReturnValue(true);
 
-    const item = screen.getByText("Lunch").closest("article");
-    const deleteBtn = item.querySelector("button:last-of-type");
+    const { container } = render(<TransactionList transactions={transactions} onDelete={onDelete} />);
+
+    const transaction = screen.getByText("Lunch").closest("article");
+    const buttons = transaction.querySelectorAll("button");
+    const deleteBtn = buttons[buttons.length - 1]; // Last button is delete
+    
     await user.click(deleteBtn);
-
+    
+    expect(window.confirm).toHaveBeenCalled();
     expect(onDelete).toHaveBeenCalledWith("tx-1");
   });
 });
