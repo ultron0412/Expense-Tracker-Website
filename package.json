@@ -8,5 +8,9 @@
     "build:client": "npm --prefix client run build",
     "build:docker": "docker compose -f docker-compose.prod.yml build",
     "up:docker": "docker compose -f docker-compose.prod.yml up -d"
+  },
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.10"
   }
 }
