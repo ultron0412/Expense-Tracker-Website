@@ -11,9 +11,28 @@ const transactionRoutes = require("./routes/transaction.routes");
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
 
 const app = express();
+const isProduction = config.nodeEnv === "production";
 
 app.disable("x-powered-by");
-app.set("trust proxy", 1);
+app.set("trust proxy", isProduction ? 1 : false);
+
+if (isProduction) {
+  app.use((req, res, next) => {
+    const forwardedProtoHeader = req.headers["x-forwarded-proto"];
+    const forwardedProto = String(forwardedProtoHeader || "")
+      .split(",")[0]
+      .trim()
+      .toLowerCase();
+
+    if (forwardedProto && forwardedProto !== "https") {
+      const forwardedHost = req.headers["x-forwarded-host"];
+      const host = forwardedHost || req.headers.host;
+      return res.redirect(301, `https://${host}${req.originalUrl}`);
+    }
+
+    return next();
+  });
+}
 
 const corsOptions = {
   origin(origin, callback) {
@@ -73,4 +92,3 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 module.exports = app;
-
